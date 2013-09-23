@@ -12,10 +12,10 @@ import java.util.Vector;
 
 public class Client 
 {
-	private Client obj = new Client();
-	private BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-	private String command = "";
-	private Vector arguments  = new Vector();
+	private static Client obj = new Client();
+	private static BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+	private static String command = "";
+	private static Vector arguments  = new Vector();
 	private int Id, Cid;
 	private int flightNum;
 	private int flightPrice;
@@ -61,10 +61,27 @@ public class Client
 			System.err.println("IO exception occurred in the connection");
 		}
 		
+		System.out.println("\n\n\tClient Interface");
+        System.out.println("Type \"help\" for list of supported commands");
+        
+        while(true){
+	        System.out.print("\n>");
+	        try{
+	            //read the next command
+	            command =stdin.readLine();
+	        } catch (IOException io){
+	            System.out.println("Unable to read from standard in");
+	            System.exit(1);
+	        }
+	        
+	      //remove heading and trailing white space
+	        command=command.trim();
+	        arguments=obj.parse(command);
 		
+        }
 	}
 	
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Vector parse(String command)
     {
 	    Vector arguments = new Vector();
