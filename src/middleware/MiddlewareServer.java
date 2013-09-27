@@ -10,6 +10,7 @@ public class MiddlewareServer
 	{
 		ServerSocket middlewareSocket = null;
 		Socket socket = null;
+		boolean listening = true;
 		int port;
 		
 		if(args.length > 0)
@@ -31,7 +32,7 @@ public class MiddlewareServer
 			System.exit(-1);
 		}
 		
-		while(true)
+		while(listening)
 		{
 
 			try {
@@ -41,6 +42,14 @@ public class MiddlewareServer
 			}
 			
 			new ClientHandler(socket).run();
+		}
+		
+		try {
+			middlewareSocket.close();
+			System.out.println("Server Socket has been closed");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 			
 		

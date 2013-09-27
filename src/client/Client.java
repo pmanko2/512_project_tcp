@@ -1,14 +1,20 @@
 package client;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import org.json.*;
+
 
 public class Client 
 {
@@ -31,8 +37,8 @@ public class Client
 	public static void main(String[] args)
 	{
 		Socket clientSocket = null;
-		ObjectInputStream clientInput = null;
 		DataOutputStream clientOutput = null;
+		BufferedReader clientInput = null;
 		String server = "localhost";
 		int port = 1107;
 		
@@ -50,22 +56,24 @@ public class Client
             System.exit(1);
         }
 		
-		try
-		{
-			clientSocket = new Socket(server, port);
-			clientInput = new ObjectInputStream(clientSocket.getInputStream()); 
-			clientOutput = new DataOutputStream(clientSocket.getOutputStream());
-			
-		} catch(UnknownHostException e) {
-			System.err.println("Host not recognized");
-		} catch(IOException e){
-			System.err.println("IO exception occurred in the connection");
-		}
-		
 		System.out.println("\n\n\tClient Interface");
         System.out.println("Type \"help\" for list of supported commands");
         
-        while(true){
+        while(true)
+        {
+        	try
+    		{
+    			clientSocket = new Socket(server, port);
+    			clientOutput = new DataOutputStream(clientSocket.getOutputStream());
+    			clientInput = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+    			
+    		} catch(UnknownHostException e) {
+    			System.err.println("Host not recognized");
+    		} catch(IOException e){
+    			System.err.println("IO exception occurred in the connection");
+    		}
+        	
+        	
 	        System.out.print("\n>");
 	        try{
 	            //read the next command
@@ -107,6 +115,22 @@ public class Client
 			            flightNum = obj.getInt(arguments.elementAt(2));
 			            flightSeats = obj.getInt(arguments.elementAt(3));
 			            flightPrice = obj.getInt(arguments.elementAt(4));
+			            
+			            JSONObject json = new JSONObject();
+			            
+			            JSONObject request = new JSONObject();
+			            request.put("method", "new_flight");
+			            
+			            JSONArray params = new JSONArray();
+			            params.put(Id);
+			            params.put(flightNum);
+			            params.put(flightSeats);
+			            params.put(flightPrice);
+			            
+			            request.put("parameters", params);
+			            json.put("request", request);
+			            
+			            sendJson(json, clientOutput, clientSocket);
 			            
 		            }
 		            catch(Exception e)
@@ -558,6 +582,23 @@ public class Client
 		            break;
 	        }//end of switch
 		
+	        String serverResponse;
+	        
+	        // handles middleware server response
+	        try {
+	        	
+				while((serverResponse = clientInput.readLine()) != null)
+				{
+					System.out.println("Server Response: " + serverResponse);
+					
+					if(serverResponse.equals("Server disconnected"))
+						break;
+				}
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
 	}
 	
@@ -862,8 +903,17 @@ public class Client
 	        }
     }
     
-    private void constructAndSendJson()
+    private static void sendJson(JSONObject request, DataOutputStream output, Socket socket)
     {
-    	//TODO 
+    	try {
+			output.writeBytes(request.toString());
+			output.flush();
+			output.close();
+			socket.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 }
