@@ -25,6 +25,7 @@ public class MiddlewareServer
 		try
 		{
 			middlewareSocket = new ServerSocket(port);
+			System.out.println("Server is listening on port " + middlewareSocket.getLocalPort());
 		}
 		catch(IOException e)
 		{
@@ -41,6 +42,7 @@ public class MiddlewareServer
 				System.out.println("Input/Output error" + e.toString());
 			}
 			
+			System.out.println("Creating new socket thread: " + socket.getInetAddress());
 			new ClientHandler(socket).run();
 		}
 		

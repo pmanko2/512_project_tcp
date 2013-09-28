@@ -39,7 +39,7 @@ public class Client
 		Socket clientSocket = null;
 		DataOutputStream clientOutput = null;
 		BufferedReader clientInput = null;
-		String server = "localhost";
+		String server = "teaching.cs.mcgill.ca";
 		int port = 1107;
 		
 		if(args.length > 0)
@@ -69,8 +69,10 @@ public class Client
     			
     		} catch(UnknownHostException e) {
     			System.err.println("Host not recognized");
+    			System.exit(1);
     		} catch(IOException e){
     			System.err.println("IO exception occurred in the connection");
+    			System.exit(1);
     		}
         	
         	
@@ -906,6 +908,8 @@ public class Client
     private static void sendJson(JSONObject request, DataOutputStream output, Socket socket)
     {
     	try {
+    		System.out.println("JSON Request: " + request.toString());
+    		
 			output.writeBytes(request.toString());
 			output.flush();
 			output.close();

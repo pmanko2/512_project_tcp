@@ -34,6 +34,8 @@ public class ClientHandler implements Runnable
 			
 			while((clientRequest = inputReader.readLine()) != null)
 			{
+				System.out.println(clientRequest);
+				
 				JSONObject jsonRequest = new JSONObject(clientRequest);
 				processJson(jsonRequest);
 			}
