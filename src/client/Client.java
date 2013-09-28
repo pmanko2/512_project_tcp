@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import org.json.*;
@@ -29,10 +30,10 @@ public class Client
 	static int flightSeats;
 	boolean Room;
 	boolean Car;
-	int price;
+	static int price;
 	int numRooms;
-	int numCars;
-	String location;
+	static int numCars;
+	static String location;
 	
 	public static void main(String[] args)
 	{
@@ -118,22 +119,16 @@ public class Client
 			            flightSeats = obj.getInt(arguments.elementAt(3));
 			            flightPrice = obj.getInt(arguments.elementAt(4));
 			            
-			            JSONObject json = new JSONObject();
+			            ArrayList<String> params = new ArrayList<String>();
 			            
-			            JSONObject request = new JSONObject();
-			            request.put("method", "new_flight");
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(flightNum));
+			            params.add(String.valueOf(flightSeats));
+			            params.add(String.valueOf(flightPrice));
 			            
-			            JSONArray params = new JSONArray();
-			            params.put(Id);
-			            params.put(flightNum);
-			            params.put(flightSeats);
-			            params.put(flightPrice);
-			            
-			            request.put("parameters", params);
-			            json.put("request", request);
-			            
-			            sendJson(json, clientOutput, clientSocket);
-			            
+			            JSONObject newRequest = constructJson("new_flight", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			     
 		            }
 		            catch(Exception e)
 		            {
@@ -144,24 +139,33 @@ public class Client
 		            
 		            break;
 		            
-		        /*case 3:  //new Car
-		            if(arguments.size()!=5){
-		            obj.wrongNumber();
-		            break;
+		        case 3:  //new Car
+		            if(arguments.size()!=5)
+		            {
+			            obj.wrongNumber();
+			            break;
 		            }
+		            
 		            System.out.println("Adding a new Car using id: "+arguments.elementAt(1));
 		            System.out.println("Car Location: "+arguments.elementAt(2));
 		            System.out.println("Add Number of Cars: "+arguments.elementAt(3));
 		            System.out.println("Set Price: "+arguments.elementAt(4));
-		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            location = obj.getString(arguments.elementAt(2));
-		            numCars = obj.getInt(arguments.elementAt(3));
-		            price = obj.getInt(arguments.elementAt(4));
-		            if(rm.addCars(Id,location,numCars,price))
-		                System.out.println("Cars added");
-		            else
-		                System.out.println("Cars could not be added");
+		            
+		            try {
+			            Id = obj.getInt(arguments.elementAt(1));
+			            location = obj.getString(arguments.elementAt(2));
+			            numCars = obj.getInt(arguments.elementAt(3));
+			            price = obj.getInt(arguments.elementAt(4));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(location);
+			            params.add(String.valueOf(numCars));
+			            params.add(String.valueOf(price));
+			            
+			            JSONObject newRequest = constructJson("new_car", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
 		            }
 		            catch(Exception e){
 		            System.out.println("EXCEPTION:");
@@ -169,7 +173,8 @@ public class Client
 		            e.printStackTrace();
 		            }
 		            break;
-		            
+		        
+		            /*
 		        case 4:  //new Room
 		            if(arguments.size()!=5){
 		            obj.wrongNumber();
@@ -593,7 +598,7 @@ public class Client
 				{
 					System.out.println("Server Response: " + serverResponse);
 					
-					if(serverResponse.equals("Server disconnected"))
+					if(serverResponse.equals("Received and processed json"))
 						break;
 				}
 				
@@ -905,15 +910,47 @@ public class Client
 	        }
     }
     
+    private static JSONObject constructJson(String method, ArrayList<String> params)
+    {
+    	JSONObject json = new JSONObject();
+    	
+    	try{
+    		
+            
+            JSONObject request = new JSONObject();
+            request.put("method", method);
+            
+            JSONArray parameters = new JSONArray();
+            
+            for(int i = 0; i < params.size(); i++)
+            {
+            	parameters.put(params.get(i));
+            }
+            
+            request.put("parameters", params);
+            json.put("request", request);
+            
+            
+    	} catch(Exception e)
+    	{
+    		System.out.println("JSONException: " + e.getMessage());
+    	}
+    	
+    	System.out.println("Client constructed Json: " + json.toString());
+    	
+    	return json;
+    	
+    }
+    
     private static void sendJson(JSONObject request, DataOutputStream output, Socket socket)
     {
     	try {
     		System.out.println("JSON Request: " + request.toString());
     		
-			output.writeBytes(request.toString());
+			output.writeBytes(request.toString() + "\n");
 			output.flush();
-			output.close();
-			socket.close();
+			//output.close();
+			//socket.close();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -1,21 +1,24 @@
 package middleware;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ClientHandler implements Runnable
+public class ClientHandler extends Thread
 {
 	private Socket server;
 	
 	public ClientHandler(Socket server)
 	{
+		super("ClientHandler");
 		this.server = server;
 	}
 
@@ -24,11 +27,13 @@ public class ClientHandler implements Runnable
 	{
 		InputStream clientInput = null;
 		BufferedReader inputReader = null;
+		DataOutputStream out = null; 
 		
 		try
 		{
 			clientInput = server.getInputStream();
 			inputReader = new BufferedReader(new InputStreamReader(clientInput));
+			out = new DataOutputStream(server.getOutputStream());
 			
 			String clientRequest;
 			
@@ -38,7 +43,11 @@ public class ClientHandler implements Runnable
 				
 				JSONObject jsonRequest = new JSONObject(clientRequest);
 				processJson(jsonRequest);
+				
+				out.writeBytes("Received and processed json\n");
+				out.flush();
 			}
+			
 
 		} catch(IOException e)
 		{

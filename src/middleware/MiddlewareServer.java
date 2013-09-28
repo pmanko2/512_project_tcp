@@ -9,7 +9,6 @@ public class MiddlewareServer
 	public static void main(String[] args)
 	{
 		ServerSocket middlewareSocket = null;
-		Socket socket = null;
 		boolean listening = true;
 		int port;
 		
@@ -35,15 +34,16 @@ public class MiddlewareServer
 		
 		while(listening)
 		{
-
 			try {
-				socket = middlewareSocket.accept();
+				System.out.println("Trying to connect to new socket");
+				Socket socket = middlewareSocket.accept();
+				
+				System.out.println("Creating new socket thread: " + socket.getInetAddress());
+				new ClientHandler(socket).start();
+				
 			} catch (IOException e) {
 				System.out.println("Input/Output error" + e.toString());
 			}
-			
-			System.out.println("Creating new socket thread: " + socket.getInetAddress());
-			new ClientHandler(socket).run();
 		}
 		
 		try {
