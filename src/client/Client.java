@@ -370,7 +370,7 @@ public class Client
 			            params.add(String.valueOf(Id));
 			            params.add(String.valueOf(flightNum));
 			            
-			            JSONObject newRequest = constructJson("query_flight", params);
+			            JSONObject newRequest = constructJson("query_flight_location", params);
 			            sendJson(newRequest, clientOutput, clientSocket);
 			            
 		            }
@@ -426,7 +426,7 @@ public class Client
 			            params.add(String.valueOf(Id));
 			            params.add(String.valueOf(location));
 			            
-			            JSONObject newRequest = constructJson("query_rooms", params);
+			            JSONObject newRequest = constructJson("query_room_location", params);
 			            sendJson(newRequest, clientOutput, clientSocket);
 
 			            //get num rooms
@@ -484,7 +484,7 @@ public class Client
 		            params.add(String.valueOf(Id));
 		            params.add(String.valueOf(flightNum));
 		            
-		            JSONObject newRequest = constructJson("query_flight", params);
+		            JSONObject newRequest = constructJson("query_flight_price", params);
 		            sendJson(newRequest, clientOutput, clientSocket);
 		            
 		            //get price back
@@ -513,7 +513,7 @@ public class Client
 			            params.add(String.valueOf(Id));
 			            params.add(String.valueOf(location));
 			            
-			            JSONObject newRequest = constructJson("query_car", params);
+			            JSONObject newRequest = constructJson("query_car_price", params);
 			            sendJson(newRequest, clientOutput, clientSocket);
 			            //must get price back
 			            //System.out.println("Price of a car at this location:"+price);
@@ -541,7 +541,7 @@ public class Client
 			            params.add(String.valueOf(Id));
 			            params.add(String.valueOf(location));
 			            
-			            JSONObject newRequest = constructJson("query_room", params);
+			            JSONObject newRequest = constructJson("query_room_price", params);
 			            sendJson(newRequest, clientOutput, clientSocket);
 			            //must get price back
 			          //  System.out.println("Price of Rooms at this location:"+price);
