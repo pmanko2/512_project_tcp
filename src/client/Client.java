@@ -31,7 +31,7 @@ public class Client
 	boolean Room;
 	boolean Car;
 	static int price;
-	int numRooms;
+	static int numRooms;
 	static int numCars;
 	static String location;
 	
@@ -174,66 +174,91 @@ public class Client
 		            }
 		            break;
 		        
-		            /*
+		            
 		        case 4:  //new Room
-		            if(arguments.size()!=5){
-		            obj.wrongNumber();
-		            break;
+		            if(arguments.size()!=5)
+		            {
+			            obj.wrongNumber();
+			            break;
 		            }
+		            
 		            System.out.println("Adding a new Room using id: "+arguments.elementAt(1));
 		            System.out.println("Room Location: "+arguments.elementAt(2));
 		            System.out.println("Add Number of Rooms: "+arguments.elementAt(3));
 		            System.out.println("Set Price: "+arguments.elementAt(4));
+		            
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            location = obj.getString(arguments.elementAt(2));
-		            numRooms = obj.getInt(arguments.elementAt(3));
-		            price = obj.getInt(arguments.elementAt(4));
-		            if(rm.addRooms(Id,location,numRooms,price))
-		                System.out.println("Rooms added");
-		            else
-		                System.out.println("Rooms could not be added");
-		            }
-		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            Id = obj.getInt(arguments.elementAt(1));
+			            location = obj.getString(arguments.elementAt(2));
+			            numRooms = obj.getInt(arguments.elementAt(3));
+			            price = obj.getInt(arguments.elementAt(4));
+		            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(location);
+			            params.add(String.valueOf(numRooms));
+			            params.add(String.valueOf(price));
+			            
+			            JSONObject newRequest = constructJson("new_room", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+		            }   
+		            catch(Exception e)
+		            {
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
 		            
 		        case 5:  //new Customer
 		            if(arguments.size()!=2){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
+		            
 		            System.out.println("Adding a new Customer using id:"+arguments.elementAt(1));
+		            
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            int customer=rm.newCustomer(Id);
-		            System.out.println("new customer id:"+customer);
+			            Id = obj.getInt(arguments.elementAt(1));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            
+			            JSONObject newRequest = constructJson("new_customer", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			            
+			            System.out.println("new customer id:"+ Id);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
 		            
 		        case 6: //delete Flight
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
+		            	obj.wrongNumber();
 		            break;
 		            }
+		            
 		            System.out.println("Deleting a flight using id: "+arguments.elementAt(1));
 		            System.out.println("Flight Number: "+arguments.elementAt(2));
+		           
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            flightNum = obj.getInt(arguments.elementAt(2));
-		            if(rm.deleteFlight(Id,flightNum))
-		                System.out.println("Flight Deleted");
-		            else
-		                System.out.println("Flight could not be deleted");
-		            }
+			            Id = obj.getInt(arguments.elementAt(1));
+			            flightNum = obj.getInt(arguments.elementAt(2));
+		            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(flightNum));
+			            
+			            JSONObject newRequest = constructJson("delete_flight", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+		            }    
 		            catch(Exception e){
 		            System.out.println("EXCEPTION:");
 		            System.out.println(e.getMessage());
@@ -243,111 +268,149 @@ public class Client
 		            
 		        case 7: //delete Car
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
+		            
 		            System.out.println("Deleting the cars from a particular location  using id: "+arguments.elementAt(1));
 		            System.out.println("Car Location: "+arguments.elementAt(2));
-		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            location = obj.getString(arguments.elementAt(2));
 		            
-		            if(rm.deleteCars(Id,location))
-		                System.out.println("Cars Deleted");
-		            else
-		                System.out.println("Cars could not be deleted");
+		            try{
+			            Id = obj.getInt(arguments.elementAt(1));
+			            location = obj.getString(arguments.elementAt(2));
+		            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(location);
+			            
+			            JSONObject newRequest = constructJson("delete_car", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
 		            
 		        case 8: //delete Room
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
+		            
 		            System.out.println("Deleting all rooms from a particular location  using id: "+arguments.elementAt(1));
 		            System.out.println("Room Location: "+arguments.elementAt(2));
+		            
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            location = obj.getString(arguments.elementAt(2));
-		            if(rm.deleteRooms(Id,location))
-		                System.out.println("Rooms Deleted");
-		            else
-		                System.out.println("Rooms could not be deleted");
+			            Id = obj.getInt(arguments.elementAt(1));
+			            location = obj.getString(arguments.elementAt(2));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(location);
+			            
+			            JSONObject newRequest = constructJson("delete_room", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+
 		            }
-		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+		            catch(Exception e)
+		            {
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
 		            
 		        case 9: //delete Customer
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Deleting a customer from the database using id: "+arguments.elementAt(1));
 		            System.out.println("Customer id: "+arguments.elementAt(2));
+		            
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            int customer = obj.getInt(arguments.elementAt(2));
-		            if(rm.deleteCustomer(Id,customer))
-		                System.out.println("Customer Deleted");
-		            else
-		                System.out.println("Customer could not be deleted");
+			            Id = obj.getInt(arguments.elementAt(1));
+			            int customer = obj.getInt(arguments.elementAt(2));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(customer));
+			            
+			            JSONObject newRequest = constructJson("delete_customer", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
 		            
 		        case 10: //querying a flight
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
+		            
 		            System.out.println("Querying a flight using id: "+arguments.elementAt(1));
 		            System.out.println("Flight number: "+arguments.elementAt(2));
+		            
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            flightNum = obj.getInt(arguments.elementAt(2));
-		            int seats=rm.queryFlight(Id,flightNum);
-		            System.out.println("Number of seats available:"+seats);
+			            Id = obj.getInt(arguments.elementAt(1));
+			            flightNum = obj.getInt(arguments.elementAt(2));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(flightNum));
+			            
+			            JSONObject newRequest = constructJson("query_flight", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			            
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
 		            
 		        case 11: //querying a Car Location
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
+		            
 		            System.out.println("Querying a car location using id: "+arguments.elementAt(1));
 		            System.out.println("Car location: "+arguments.elementAt(2));
+		            
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            location = obj.getString(arguments.elementAt(2));
-		            numCars=rm.queryCars(Id,location);
-		            System.out.println("number of Cars at this location:"+numCars);
+			            Id = obj.getInt(arguments.elementAt(1));
+			            location = obj.getString(arguments.elementAt(2));
+
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(location);
+			            
+			            JSONObject newRequest = constructJson("query_car_location", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			            
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
-		            
+		          
+		        /*
 		        case 12: //querying a Room location
 		            if(arguments.size()!=3){
 		            obj.wrongNumber();
