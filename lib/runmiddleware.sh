@@ -1,10 +1,10 @@
 #!/bin/bash
 
 echo 'Establishing classpath...'
-export CLASSPATH=~/comp512_tcp/middleware:~/comp512_tcp/java-json.jar
+export CLASSPATH=~/cs512_tcp/middleware:~/cs512_tcp/java-json.jar
 
 echo 'Compiling...'
-javac ~/comp512_tcp/middleware/MiddlewareServer.java
+javac ~/cs512_tcp/middleware/MiddlewareServer.java
 
 echo 'Running Middleware server...'
 java MiddlewareServer
