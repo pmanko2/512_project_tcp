@@ -24,7 +24,7 @@ public class Client
 	static String command = "";
 	static Vector arguments  = new Vector();
 	static int Id;
-	int Cid;
+	static int Cid;
 	static int flightNum;
 	static int flightPrice;
 	static int flightSeats;
@@ -347,104 +347,147 @@ public class Client
 		            e.printStackTrace();
 		            }
 		            break;
-		            
+		       */     
 		        case 12: //querying a Room location
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Querying a room location using id: "+arguments.elementAt(1));
 		            System.out.println("Room location: "+arguments.elementAt(2));
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            location = obj.getString(arguments.elementAt(2));
-		            numRooms=rm.queryRooms(Id,location);
-		            System.out.println("number of Rooms at this location:"+numRooms);
+			            Id = obj.getInt(arguments.elementAt(1));
+			            location = obj.getString(arguments.elementAt(2));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(location));
+			            
+			            JSONObject newRequest = constructJson("query_rooms", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+
+			            //get num rooms
+			            //System.out.println("number of Rooms at this location:"+numRooms);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
-		            
+		           
 		        case 13: //querying Customer Information
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Querying Customer information using id: "+arguments.elementAt(1));
 		            System.out.println("Customer id: "+arguments.elementAt(2));
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            int customer = obj.getInt(arguments.elementAt(2));
-		            String bill=rm.queryCustomerInfo(Id,customer);
-		            System.out.println("Customer info:"+bill);
+			            Id = obj.getInt(arguments.elementAt(1));
+			            int customer = obj.getInt(arguments.elementAt(2));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(customer));
+			            
+			            JSONObject newRequest = constructJson("query_customer", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+
+			            //print bill
+			            //System.out.println("Customer info:"+bill);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;               
 		            
 		        case 14: //querying a flight Price
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Querying a flight Price using id: "+arguments.elementAt(1));
 		            System.out.println("Flight number: "+arguments.elementAt(2));
 		            try{
 		            Id = obj.getInt(arguments.elementAt(1));
 		            flightNum = obj.getInt(arguments.elementAt(2));
-		            price=rm.queryFlightPrice(Id,flightNum);
-		            System.out.println("Price of a seat:"+price);
+
+		            ArrayList<String> params = new ArrayList<String>();
+		            
+		            params.add(String.valueOf(Id));
+		            params.add(String.valueOf(flightNum));
+		            
+		            JSONObject newRequest = constructJson("query_flight", params);
+		            sendJson(newRequest, clientOutput, clientSocket);
+		            
+		            //get price back
+		            //System.out.println("Price of a seat:"+price);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
-		            
+		           
 		        case 15: //querying a Car Price
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Querying a car price using id: "+arguments.elementAt(1));
 		            System.out.println("Car location: "+arguments.elementAt(2));
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            location = obj.getString(arguments.elementAt(2));
-		            price=rm.queryCarsPrice(Id,location);
-		            System.out.println("Price of a car at this location:"+price);
+			            Id = obj.getInt(arguments.elementAt(1));
+			            location = obj.getString(arguments.elementAt(2));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(location));
+			            
+			            JSONObject newRequest = constructJson("query_car", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			            //must get price back
+			            //System.out.println("Price of a car at this location:"+price);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }                
 		            break;
 	
 		        case 16: //querying a Room price
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Querying a room price using id: "+arguments.elementAt(1));
 		            System.out.println("Room Location: "+arguments.elementAt(2));
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            location = obj.getString(arguments.elementAt(2));
-		            price=rm.queryRoomsPrice(Id,location);
-		            System.out.println("Price of Rooms at this location:"+price);
+			            Id = obj.getInt(arguments.elementAt(1));
+			            location = obj.getString(arguments.elementAt(2));
+
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(location));
+			            
+			            JSONObject newRequest = constructJson("query_room", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			            //must get price back
+			          //  System.out.println("Price of Rooms at this location:"+price);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
 		            
@@ -457,64 +500,82 @@ public class Client
 		            System.out.println("Customer id: "+arguments.elementAt(2));
 		            System.out.println("Flight number: "+arguments.elementAt(3));
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            int customer = obj.getInt(arguments.elementAt(2));
-		            flightNum = obj.getInt(arguments.elementAt(3));
-		            if(rm.reserveFlight(Id,customer,flightNum))
-		                System.out.println("Flight Reserved");
-		            else
-		                System.out.println("Flight could not be reserved.");
+			            Id = obj.getInt(arguments.elementAt(1));
+			            int customer = obj.getInt(arguments.elementAt(2));
+			            flightNum = obj.getInt(arguments.elementAt(3));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(customer));
+			            params.add(String.valueOf(flightNum));
+			            
+			            JSONObject newRequest = constructJson("reserve_flight", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
-		            
+		          
 		        case 18:  //reserve a car
 		            if(arguments.size()!=4){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Reserving a car at a location using id: "+arguments.elementAt(1));
 		            System.out.println("Customer id: "+arguments.elementAt(2));
 		            System.out.println("Location: "+arguments.elementAt(3));
 		            
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            int customer = obj.getInt(arguments.elementAt(2));
-		            location = obj.getString(arguments.elementAt(3));
-		            
-		            if(rm.reserveCar(Id,customer,location))
-		                System.out.println("Car Reserved");
-		            else
-		                System.out.println("Car could not be reserved.");
+			            Id = obj.getInt(arguments.elementAt(1));
+			            int customer = obj.getInt(arguments.elementAt(2));
+			            location = obj.getString(arguments.elementAt(3));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(customer));
+			            params.add(String.valueOf(location));
+			            
+			            JSONObject newRequest = constructJson("reserve_car", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
-		            
+		          
 		        case 19:  //reserve a room
 		            if(arguments.size()!=4){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Reserving a room at a location using id: "+arguments.elementAt(1));
 		            System.out.println("Customer id: "+arguments.elementAt(2));
 		            System.out.println("Location: "+arguments.elementAt(3));
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            int customer = obj.getInt(arguments.elementAt(2));
-		            location = obj.getString(arguments.elementAt(3));
-		            
-		            if(rm.reserveRoom(Id,customer,location))
-		                System.out.println("Room Reserved");
-		            else
-		                System.out.println("Room could not be reserved.");
+			            Id = obj.getInt(arguments.elementAt(1));
+			            int customer = obj.getInt(arguments.elementAt(2));
+			            location = obj.getString(arguments.elementAt(3));
+			            
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(customer));
+			            params.add(String.valueOf(location));
+			            
+			            JSONObject newRequest = constructJson("reserve_room", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			            
+			            /*if(rm.reserveRoom(Id,customer,location))
+			                System.out.println("Room Reserved");
+			            else
+			                System.out.println("Room could not be reserved.");*/
 		            }
 		            catch(Exception e){
 		            System.out.println("EXCEPTION:");
@@ -523,7 +584,7 @@ public class Client
 		            }
 		            break;
 		            
-		        case 20:  //reserve an Itinerary
+		      /*  case 20:  //reserve an Itinerary
 		            if(arguments.size()<7){
 		            obj.wrongNumber();
 		            break;
@@ -556,7 +617,7 @@ public class Client
 		            e.printStackTrace();
 		            }
 		            break;
-		                        
+		          */              
 		        case 21:  //quit the client
 		            if(arguments.size()!=1){
 		            obj.wrongNumber();
@@ -564,25 +625,35 @@ public class Client
 		            }
 		            System.out.println("Quitting client.");
 		            System.exit(1);
-		                        
+		                       
 		        case 22:  //new Customer given id
 		            if(arguments.size()!=3){
-		            obj.wrongNumber();
-		            break;
+			            obj.wrongNumber();
+			            break;
 		            }
 		            System.out.println("Adding a new Customer using id:"+arguments.elementAt(1) + " and cid " +arguments.elementAt(2));
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            Cid = obj.getInt(arguments.elementAt(2));
-		            boolean customer=rm.newCustomer(Id,Cid);
-		            System.out.println("new customer id:"+Cid);
+			            Id = obj.getInt(arguments.elementAt(1));
+			            Cid = obj.getInt(arguments.elementAt(2));
+
+			            ArrayList<String> params = new ArrayList<String>();
+			            
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(Cid));
+			            
+			            JSONObject newRequest = constructJson("new_customer_id", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			            
+			            System.out.println("new customer id:"+Cid);
+			            
+			            
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
-		            break;*/
+		            break;
 		            
 		        default:
 		            System.out.println("The interface does not support this command.");
