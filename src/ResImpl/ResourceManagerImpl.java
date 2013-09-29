@@ -20,7 +20,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.RMISecurityManager;
 
-public class ResourceManagerImpl implements ResourceManager 
+public class ResourceManagerImpl implements ResourceManager
 {
 
 	protected RMHashtable m_itemHT = new RMHashtable();
@@ -29,7 +29,7 @@ public class ResourceManagerImpl implements ResourceManager
     public static void main(String args[]) {
         // Figure out where server is running
         String server = "localhost";
-        int port = 7707;
+        int port = 1107;
 
         if (args.length == 1) {
             server = server + ":" + args[0];
@@ -45,8 +45,6 @@ public class ResourceManagerImpl implements ResourceManager
             ResourceManagerImpl obj = new ResourceManagerImpl();
             // dynamically generate the stub (client proxy)
             ResourceManager rm = (ResourceManager) UnicastRemoteObject.exportObject(obj, 0);
-            
-            
             
             // Bind the remote object's stub in the registry
             Registry registry = LocateRegistry.createRegistry(port);
