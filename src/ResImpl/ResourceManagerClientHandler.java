@@ -20,12 +20,14 @@ import ResInterface.ResourceManager;
 public class ResourceManagerClientHandler extends Thread implements ResourceManager
 {
 	private Socket clientSocket;
-	protected RMHashtable m_itemHT = new RMHashtable();
+	protected ResourceManagerImpl mainRM;
 	
-	public ResourceManagerClientHandler(Socket socket)
+	public ResourceManagerClientHandler(Socket socket, ResourceManagerImpl mainRM)
 	{
 		super("RMClientHandler");
 		this.clientSocket = socket;
+		
+		this.mainRM = mainRM;
 	}
 	
 	@Override
@@ -43,12 +45,16 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 			
 			String clientRequest;
 			
-			while((clientRequest = inputReader.readLine()) != null)
+			// keep connection open in case of more requests from middleware
+			while(true)
 			{
-				System.out.println(clientRequest);
-				
-				JSONObject jsonRequest = new JSONObject(clientRequest);
-				processJson(jsonRequest, out);
+				while((clientRequest = inputReader.readLine()) != null)
+				{
+					System.out.println(clientRequest);
+					
+					JSONObject jsonRequest = new JSONObject(clientRequest);
+					processJson(jsonRequest, out);
+				}
 			}
 			
 
@@ -60,44 +66,20 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 			System.out.println("json error: " + e.toString());
 		}
 	}
-
-	    // Reads a data item
-	    private RMItem readData( int id, String key )
-	    {
-	        synchronized(m_itemHT) {
-	            return (RMItem) m_itemHT.get(key);
-	        }
-	    }
-
-	    // Writes a data item
-	    @SuppressWarnings("unchecked")
-	    private void writeData( int id, String key, RMItem value )
-	    {
-	        synchronized(m_itemHT) {
-	            m_itemHT.put(key, value);
-	        }
-	    }
-	    
-	    // Remove the item out of storage
-	    protected RMItem removeData(int id, String key) {
-	        synchronized(m_itemHT) {
-	            return (RMItem)m_itemHT.remove(key);
-	        }
-	    }
 	    
 	    
 	    // deletes the entire item
 	    protected boolean deleteItem(int id, String key)
 	    {
 	        Trace.info("RM::deleteItem(" + id + ", " + key + ") called" );
-	        ReservableItem curObj = (ReservableItem) readData( id, key );
+	        ReservableItem curObj = (ReservableItem) mainRM.readData( id, key );
 	        // Check if there is such an item in the storage
 	        if ( curObj == null ) {
 	            Trace.warn("RM::deleteItem(" + id + ", " + key + ") failed--item doesn't exist" );
 	            return false;
 	        } else {
 	            if (curObj.getReserved()==0) {
-	                removeData(id, curObj.getKey());
+	                mainRM.removeData(id, curObj.getKey());
 	                Trace.info("RM::deleteItem(" + id + ", " + key + ") item deleted" );
 	                return true;
 	            }
@@ -112,7 +94,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	    // query the number of available seats/rooms/cars
 	    protected int queryNum(int id, String key) {
 	        Trace.info("RM::queryNum(" + id + ", " + key + ") called" );
-	        ReservableItem curObj = (ReservableItem) readData( id, key);
+	        ReservableItem curObj = (ReservableItem) mainRM.readData( id, key);
 	        int value = 0;  
 	        if ( curObj != null ) {
 	            value = curObj.getCount();
@@ -124,7 +106,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	    // query the price of an item
 	    protected int queryPrice(int id, String key) {
 	        Trace.info("RM::queryCarsPrice(" + id + ", " + key + ") called" );
-	        ReservableItem curObj = (ReservableItem) readData( id, key);
+	        ReservableItem curObj = (ReservableItem) mainRM.readData( id, key);
 	        int value = 0; 
 	        if ( curObj != null ) {
 	            value = curObj.getPrice();
@@ -137,14 +119,14 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	    protected boolean reserveItem(int id, int customerID, String key, String location) {
 	        Trace.info("RM::reserveItem( " + id + ", customer=" + customerID + ", " +key+ ", "+location+" ) called" );        
 	        // Read customer object if it exists (and read lock it)
-	        Customer cust = (Customer) readData( id, Customer.getKey(customerID) );        
+	        Customer cust = (Customer) mainRM.readData( id, Customer.getKey(customerID) );        
 	        if ( cust == null ) {
 	            Trace.warn("RM::reserveCar( " + id + ", " + customerID + ", " + key + ", "+location+")  failed--customer doesn't exist" );
 	            return false;
 	        } 
 	        
 	        // check if the item is available
-	        ReservableItem item = (ReservableItem)readData(id, key);
+	        ReservableItem item = (ReservableItem)mainRM.readData(id, key);
 	        if ( item == null ) {
 	            Trace.warn("RM::reserveItem( " + id + ", " + customerID + ", " + key+", " +location+") failed--item doesn't exist" );
 	            return false;
@@ -153,7 +135,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	            return false;
 	        } else {            
 	            cust.reserve( key, location, item.getPrice());        
-	            writeData( id, cust.getKey(), cust );
+	            mainRM.writeData( id, cust.getKey(), cust );
 	            
 	            // decrease the number of available items in the storage
 	            item.setCount(item.getCount() - 1);
@@ -170,7 +152,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	     */
 	    public ReservableItem getReservableItem(int id, String key)
 	    {
-	    	return (ReservableItem)readData(id, key);
+	    	return (ReservableItem)mainRM.readData(id, key);
 	    }
 	    
 		/**
@@ -178,7 +160,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 		 */
 		public boolean itemReserved(int id, ReservableItem item) throws RemoteException {
 
-	        ReservableItem item_to_update = (ReservableItem)readData(id, item.getKey());
+	        ReservableItem item_to_update = (ReservableItem)mainRM.readData(id, item.getKey());
 		
 	        // decrease the number of available items in the storage
 	        item_to_update.setCount(item_to_update.getCount() - 1);
@@ -193,11 +175,11 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	        throws RemoteException
 	    {
 	        Trace.info("RM::addFlight(" + id + ", " + flightNum + ", $" + flightPrice + ", " + flightSeats + ") called" );
-	        Flight curObj = (Flight) readData( id, Flight.getKey(flightNum) );
+	        Flight curObj = (Flight) mainRM.readData( id, Flight.getKey(flightNum) );
 	        if ( curObj == null ) {
 	            // doesn't exist...add it
 	            Flight newObj = new Flight( flightNum, flightSeats, flightPrice );
-	            writeData( id, newObj.getKey(), newObj );
+	            mainRM.writeData( id, newObj.getKey(), newObj );
 	            Trace.info("RM::addFlight(" + id + ") created new flight " + flightNum + ", seats=" +
 	                    flightSeats + ", price=$" + flightPrice );
 	        } else {
@@ -206,7 +188,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	            if ( flightPrice > 0 ) {
 	                curObj.setPrice( flightPrice );
 	            } // if
-	            writeData( id, curObj.getKey(), curObj );
+	            mainRM.writeData( id, curObj.getKey(), curObj );
 	            Trace.info("RM::addFlight(" + id + ") modified existing flight " + flightNum + ", seats=" + curObj.getCount() + ", price=$" + flightPrice );
 	        } // else
 	        return(true);
@@ -228,11 +210,11 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	        throws RemoteException
 	    {
 	        Trace.info("RM::addRooms(" + id + ", " + location + ", " + count + ", $" + price + ") called" );
-	        Hotel curObj = (Hotel) readData( id, Hotel.getKey(location) );
+	        Hotel curObj = (Hotel) mainRM.readData( id, Hotel.getKey(location) );
 	        if ( curObj == null ) {
 	            // doesn't exist...add it
 	            Hotel newObj = new Hotel( location, count, price );
-	            writeData( id, newObj.getKey(), newObj );
+	            mainRM.writeData( id, newObj.getKey(), newObj );
 	            Trace.info("RM::addRooms(" + id + ") created new room location " + location + ", count=" + count + ", price=$" + price );
 	        } else {
 	            // add count to existing object and update price...
@@ -240,7 +222,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	            if ( price > 0 ) {
 	                curObj.setPrice( price );
 	            } // if
-	            writeData( id, curObj.getKey(), curObj );
+	            mainRM.writeData( id, curObj.getKey(), curObj );
 	            Trace.info("RM::addRooms(" + id + ") modified existing location " + location + ", count=" + curObj.getCount() + ", price=$" + price );
 	        } // else
 	        return(true);
@@ -260,11 +242,11 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	        throws RemoteException
 	    {
 	        Trace.info("RM::addCars(" + id + ", " + location + ", " + count + ", $" + price + ") called" );
-	        Car curObj = (Car) readData( id, Car.getKey(location) );
+	        Car curObj = (Car) mainRM.readData( id, Car.getKey(location) );
 	        if ( curObj == null ) {
 	            // car location doesn't exist...add it
 	            Car newObj = new Car( location, count, price );
-	            writeData( id, newObj.getKey(), newObj );
+	            mainRM.writeData( id, newObj.getKey(), newObj );
 	            Trace.info("RM::addCars(" + id + ") created new location " + location + ", count=" + count + ", price=$" + price );
 	        } else {
 	            // add count to existing car location and update price...
@@ -272,7 +254,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	            if ( price > 0 ) {
 	                curObj.setPrice( price );
 	            } // if
-	            writeData( id, curObj.getKey(), curObj );
+	            mainRM.writeData( id, curObj.getKey(), curObj );
 	            Trace.info("RM::addCars(" + id + ") modified existing location " + location + ", count=" + curObj.getCount() + ", price=$" + price );
 	        } // else
 	        return(true);
@@ -357,7 +339,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	        throws RemoteException
 	    {
 	        Trace.info("RM::getCustomerReservations(" + id + ", " + customerID + ") called" );
-	        Customer cust = (Customer) readData( id, Customer.getKey(customerID) );
+	        Customer cust = (Customer) mainRM.readData( id, Customer.getKey(customerID) );
 	        if ( cust == null ) {
 	            Trace.warn("RM::getCustomerReservations failed(" + id + ", " + customerID + ") failed--customer doesn't exist" );
 	            return null;
@@ -371,7 +353,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	        throws RemoteException
 	    {
 	        Trace.info("RM::queryCustomerInfo(" + id + ", " + customerID + ") called" );
-	        Customer cust = (Customer) readData( id, Customer.getKey(customerID) );
+	        Customer cust = (Customer) mainRM.readData( id, Customer.getKey(customerID) );
 	        if ( cust == null ) {
 	            Trace.warn("RM::queryCustomerInfo(" + id + ", " + customerID + ") failed--customer doesn't exist" );
 	            return "";   // NOTE: don't change this--WC counts on this value indicating a customer does not exist...
@@ -395,7 +377,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	                                String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
 	                                String.valueOf( Math.round( Math.random() * 100 + 1 )));
 	        Customer cust = new Customer( cid );
-	        writeData( id, cust.getKey(), cust );
+	        mainRM.writeData( id, cust.getKey(), cust );
 	        Trace.info("RM::newCustomer(" + cid + ") returns ID=" + cid );
 	        return cid;
 	    }
@@ -405,10 +387,10 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	        throws RemoteException
 	    {
 	        Trace.info("INFO: RM::newCustomer(" + id + ", " + customerID + ") called" );
-	        Customer cust = (Customer) readData( id, Customer.getKey(customerID) );
+	        Customer cust = (Customer) mainRM.readData( id, Customer.getKey(customerID) );
 	        if ( cust == null ) {
 	            cust = new Customer(customerID);
-	            writeData( id, cust.getKey(), cust );
+	            mainRM.writeData( id, cust.getKey(), cust );
 	            Trace.info("INFO: RM::newCustomer(" + id + ", " + customerID + ") created a new customer" );
 	            return true;
 	        } else {
@@ -424,7 +406,7 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	        throws RemoteException
 	    {
 	        Trace.info("RM::deleteCustomer(" + id + ", " + customerID + ") called" );
-	        Customer cust = (Customer) readData( id, Customer.getKey(customerID) );
+	        Customer cust = (Customer) mainRM.readData( id, Customer.getKey(customerID) );
 	        if ( cust == null ) {
 	            Trace.warn("RM::deleteCustomer(" + id + ", " + customerID + ") failed--customer doesn't exist" );
 	            return false;
@@ -435,14 +417,14 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	                String reservedkey = (String) (e.nextElement());
 	                ReservedItem reserveditem = cust.getReservedItem(reservedkey);
 	                Trace.info("RM::deleteCustomer(" + id + ", " + customerID + ") has reserved " + reserveditem.getKey() + " " +  reserveditem.getCount() +  " times"  );
-	                ReservableItem item  = (ReservableItem) readData(id, reserveditem.getKey());
+	                ReservableItem item  = (ReservableItem) mainRM.readData(id, reserveditem.getKey());
 	                Trace.info("RM::deleteCustomer(" + id + ", " + customerID + ") has reserved " + reserveditem.getKey() + "which is reserved" +  item.getReserved() +  " times and is still available " + item.getCount() + " times"  );
 	                item.setReserved(item.getReserved()-reserveditem.getCount());
 	                item.setCount(item.getCount()+reserveditem.getCount());
 	            }
 	            
 	            // remove the customer from the storage
-	            removeData(id, cust.getKey());
+	            mainRM.removeData(id, cust.getKey());
 	            
 	            Trace.info("RM::deleteCustomer(" + id + ", " + customerID + ") succeeded" );
 	            return true;

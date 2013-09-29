@@ -57,25 +57,25 @@ public class Client
             System.exit(1);
         }
 		
+        try
+		{
+			clientSocket = new Socket(server, port);
+			clientOutput = new DataOutputStream(clientSocket.getOutputStream());
+			clientInput = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			
+		} catch(UnknownHostException e) {
+			System.err.println("Host not recognized");
+			System.exit(1);
+		} catch(IOException e){
+			System.err.println("IO exception occurred in the connection");
+			System.exit(1);
+		}
+        
 		System.out.println("\n\n\tClient Interface");
         System.out.println("Type \"help\" for list of supported commands");
         
-        while(true)
-        {
-        	try
-    		{
-    			clientSocket = new Socket(server, port);
-    			clientOutput = new DataOutputStream(clientSocket.getOutputStream());
-    			clientInput = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-    			
-    		} catch(UnknownHostException e) {
-    			System.err.println("Host not recognized");
-    			System.exit(1);
-    		} catch(IOException e){
-    			System.err.println("IO exception occurred in the connection");
-    			System.exit(1);
-    		}
         	
+        while(true){
         	
 	        System.out.print("\n>");
 	        try{
@@ -724,15 +724,13 @@ public class Client
 		
 	        String serverResponse;
 	        
-	        // handles middleware server response
+	        // handles middleware server response -- blocks until response is received
 	        try {
 	        	
 				while((serverResponse = clientInput.readLine()) != null)
 				{
 					System.out.println("Server Response: " + serverResponse);
-					
-					if(serverResponse.equals("Received and processed json"))
-						break;
+					break;
 				}
 				
 			} catch (IOException e) {

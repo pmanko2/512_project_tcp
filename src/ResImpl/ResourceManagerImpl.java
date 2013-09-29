@@ -14,60 +14,77 @@ package ResImpl;
 import ResInterface.*;
 
 import java.util.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.RMISecurityManager;
 
-public class ResourceManagerImpl implements ResourceManager
+import middleware.ClientHandler;
+
+public class ResourceManagerImpl
 {
 
 	protected RMHashtable m_itemHT = new RMHashtable();
 
+	public ResourceManagerImpl(){}
 
-    public static void main(String args[]) {
-        // Figure out where server is running
-        String server = "localhost";
-        int port = 1107;
-
-        if (args.length == 1) {
-            server = server + ":" + args[0];
-            port = Integer.parseInt(args[0]);
-        } else if (args.length != 0 &&  args.length != 1) {
-            System.err.println ("Wrong usage");
-            System.out.println("Usage: java ResImpl.ResourceManagerImpl [port]");
-            System.exit(1);
-        }
-
-        try {
-            // create a new Server object
-            ResourceManagerImpl obj = new ResourceManagerImpl();
-            // dynamically generate the stub (client proxy)
-            ResourceManager rm = (ResourceManager) UnicastRemoteObject.exportObject(obj, 0);
-            
-            // Bind the remote object's stub in the registry
-            Registry registry = LocateRegistry.createRegistry(port);
-            registry.rebind("group_7_RM", rm);
-
-            System.out.println("Server ready");
-        } catch (Exception e) {
-            System.err.println("Server exception: " + e.toString());
-            e.printStackTrace();
-        }
-
-        // Create and install a security manager
-        if (System.getSecurityManager() == null) {
-            System.setSecurityManager(new RMISecurityManager());
-        }
+    public static void main(String args[]) 
+    {
+    	ServerSocket rmSocket = null;
+    	boolean listening = true;
+    	int port;
+    	
+    	ResourceManagerImpl currentClass = new ResourceManagerImpl();
+    	
+    	if(args.length > 0)
+		{
+			port = Integer.parseInt(args[0]);
+		}
+		else
+		{
+			port = 1107;
+		}
+		
+		try
+		{
+			rmSocket = new ServerSocket(port);
+			System.out.println("Server is listening on port " + rmSocket.getLocalPort());
+		}
+		catch(IOException e)
+		{
+			System.err.println("Could not listen on port");
+			System.exit(-1);
+		}
+		
+		while(listening)
+		{
+			try {
+				System.out.println("Trying to connect to new rm socket");
+				Socket socket = rmSocket.accept();
+				
+				System.out.println("Creating new rm socket thread: " + socket.getInetAddress() + " Port: " + socket.getPort());
+				//new ResourceManagerClientHandler(socket, currentClass).start();
+				
+			} catch (IOException e) {
+				System.out.println("Input/Output error" + e.toString());
+			}
+		}
+		
+		try {
+			rmSocket.close();
+			System.out.println("Server Socket has been closed");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
-     
-    public ResourceManagerImpl() throws RemoteException {
-    }
-     
-
+    
     // Reads a data item
-    private RMItem readData( int id, String key )
+    protected RMItem readData( int id, String key )
     {
         synchronized(m_itemHT) {
             return (RMItem) m_itemHT.get(key);
@@ -76,7 +93,7 @@ public class ResourceManagerImpl implements ResourceManager
 
     // Writes a data item
     @SuppressWarnings("unchecked")
-    private void writeData( int id, String key, RMItem value )
+    protected void writeData( int id, String key, RMItem value )
     {
         synchronized(m_itemHT) {
             m_itemHT.put(key, value);
@@ -91,7 +108,7 @@ public class ResourceManagerImpl implements ResourceManager
     }
     
     
-    // deletes the entire item
+    /*// deletes the entire item
     protected boolean deleteItem(int id, String key)
     {
         Trace.info("RM::deleteItem(" + id + ", " + key + ") called" );
@@ -169,18 +186,18 @@ public class ResourceManagerImpl implements ResourceManager
         }        
     }
     
-    /**
+    *//**
      * Added 25/09/13 - returns a reservable item (so that Middleware can manage reservations without 
      * providing customer data to RMs or needing to manage inventory
-     */
+     *//*
     public ReservableItem getReservableItem(int id, String key)
     {
     	return (ReservableItem)readData(id, key);
     }
     
-	/**
+	*//**
 	 * Method updates object's availability after it has been reserved in the Middleware 
-	 */
+	 *//*
 	public boolean itemReserved(int id, ReservableItem item) throws RemoteException {
 
         ReservableItem item_to_update = (ReservableItem)readData(id, item.getKey());
@@ -456,7 +473,7 @@ public class ResourceManagerImpl implements ResourceManager
 
 
 
-    /*
+    
     // Frees flight reservation record. Flight reservation records help us make sure we
     // don't delete a flight if one or more customers are holding reservations
     public boolean freeFlightReservation(int id, int flightNum)
@@ -472,7 +489,7 @@ public class ResourceManagerImpl implements ResourceManager
                 + numReservations + " reservations" );
         return true;
     }
-    */
+    
 
     
     // Adds car reservation to this customer. 
@@ -502,5 +519,5 @@ public class ResourceManagerImpl implements ResourceManager
         throws RemoteException
     {
         return false;
-    }
+    }*/
 }

@@ -52,17 +52,28 @@ public class ClientHandler extends Thread
 			
 			String clientRequest;
 			
-			// loop until reader has nothing left to read from socket
-			while((clientRequest = inputReader.readLine()) != null)
+			// keep listening to client requests -- infinite loop
+			while(true)
 			{
-				System.out.println(clientRequest);
+				// loop until reader has nothing left to read from socket
+				while((clientRequest = inputReader.readLine()) != null)
+				{
+					System.out.println(clientRequest);
+					
+					JSONObject jsonRequest = new JSONObject(clientRequest);
+					String rmResponse = processJson(jsonRequest);
+					
+					// write now we return this - need to return RM response
+					// wait for RM response before returning
+					
+					
+					
+					out.writeBytes(rmResponse + "\n");
+					out.flush();
+					break;
+				}
 				
-				JSONObject jsonRequest = new JSONObject(clientRequest);
-				processJson(jsonRequest);
-				
-				// write now we return this - need to return RM response
-				out.writeBytes("Received and processed json\n");
-				out.flush();
+				System.out.println("Stopped reading client input -- continuing to listen in while loop");
 			}
 			
 
@@ -78,8 +89,10 @@ public class ClientHandler extends Thread
 	
 	// method that processes jsonobject 
 	// new socket is opened and connection to RM is made
-	private void processJson(JSONObject toProcess)
+	private String processJson(JSONObject toProcess)
 	{
+		String rmResponse = null;
+		
 		try {
 			System.out.println("JSONObject is: " + toProcess.toString());
 			JSONObject request = toProcess.getJSONObject("request");
@@ -95,12 +108,14 @@ public class ClientHandler extends Thread
 			}
 			
 			String rmServer = chooseRMServer(method);
-			openRMSocketConnection(rmServer, request.toString());
+			rmResponse = openRMSocketConnection(rmServer, request.toString());
 						
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return rmResponse;
 	}
 	
 	// depending on what method was called we choose the appropriate RM server
@@ -122,8 +137,9 @@ public class ClientHandler extends Thread
 		}
 	}
 	
-	// open connection to RM server and passes json string through
-	private void openRMSocketConnection(String rmServer, String json)
+	// open connection to RM server and passes json string through -- returns JSON response string
+	@SuppressWarnings("resource")
+	private String openRMSocketConnection(String rmServer, String json)
 	{
 		Socket clientSocket = null;
 		DataOutputStream toRM = null;
@@ -146,6 +162,8 @@ public class ClientHandler extends Thread
 			{
 				System.out.println("Server Response: " + response);
 				
+				return response;
+				
 			}
 			
 		} catch(UnknownHostException e) {
@@ -155,5 +173,7 @@ public class ClientHandler extends Thread
 			System.err.println("IO exception occurred in the connection");
 			System.exit(1);
 		}
+		
+		return null;
 	}
 }
