@@ -29,6 +29,7 @@ public class ClientHandler extends Thread
 		super("ClientHandler");
 		this.clientSocket = server;
 		
+		// three different rm's depending on method
 		CARS_RM = "lab2-10.cs.mcgill.ca";
 		FLIGHTS_RM = "lab2-11.cs.mcgill.ca";
 		ROOMS_RM = "lab2-12.cs.mcgill.ca";
@@ -44,12 +45,14 @@ public class ClientHandler extends Thread
 		
 		try
 		{
+			// create input reader and output streams
 			clientInput = clientSocket.getInputStream();
 			inputReader = new BufferedReader(new InputStreamReader(clientInput));
 			out = new DataOutputStream(clientSocket.getOutputStream());
 			
 			String clientRequest;
 			
+			// loop until reader has nothing left to read from socket
 			while((clientRequest = inputReader.readLine()) != null)
 			{
 				System.out.println(clientRequest);
@@ -57,6 +60,7 @@ public class ClientHandler extends Thread
 				JSONObject jsonRequest = new JSONObject(clientRequest);
 				processJson(jsonRequest);
 				
+				// write now we return this - need to return RM response
 				out.writeBytes("Received and processed json\n");
 				out.flush();
 			}
@@ -72,6 +76,8 @@ public class ClientHandler extends Thread
 		
 	}
 	
+	// method that processes jsonobject 
+	// new socket is opened and connection to RM is made
 	private void processJson(JSONObject toProcess)
 	{
 		try {
@@ -97,6 +103,7 @@ public class ClientHandler extends Thread
 		}
 	}
 	
+	// depending on what method was called we choose the appropriate RM server
 	private String chooseRMServer(String method)
 	{
 		if(method.equals("new_car") || method.equals("delete_car") || method.equals("query_car_location")
@@ -115,6 +122,7 @@ public class ClientHandler extends Thread
 		}
 	}
 	
+	// open connection to RM server and passes json string through
 	private void openRMSocketConnection(String rmServer, String json)
 	{
 		Socket clientSocket = null;
@@ -132,6 +140,8 @@ public class ClientHandler extends Thread
 			
 			String response;
 			
+			// wait for response from server and eventually we will have to pass this response back
+			// to the client
 			while((response = fromRM.readLine()) != null)
 			{
 				System.out.println("Server Response: " + response);

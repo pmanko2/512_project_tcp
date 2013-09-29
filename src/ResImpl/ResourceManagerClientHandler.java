@@ -516,14 +516,12 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	    			int flightSeats;
 	    			int flightPrice;
 	    			
-	    			for(int i = 0; i < paramArray.length(); i++)
-		    		{
-		    			switch(i)
-		    			{
-		    				case 1:
-		    					
-		    			}
-		    		}
+	    			id = paramArray.getInt(0);
+	    			flightNumber = paramArray.getInt(1);
+	    			flightSeats = paramArray.getInt(2);
+	    			flightPrice = paramArray.getInt(3);
+	    			
+	    			returnResponse(addFlight(id, flightNumber, flightSeats, flightPrice), out);
 	    		}
 	    		else if(method.equals("new_car"))
 	    		{
@@ -531,6 +529,13 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	    			String location;
 	    			int numCars;
 	    			int carPrice;
+	    			
+	    			id = paramArray.getInt(0);
+	    			location = paramArray.getString(1);
+	    			numCars = paramArray.getInt(2);
+	    			carPrice = paramArray.getInt(3);
+	    			
+	    			returnResponse(addCars(id, location, numCars, carPrice), out);
 	    		}
 	    		else if(method.equals("new_room"))
 	    		{
@@ -538,6 +543,14 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	    			String location;
 	    			int numRooms;
 	    			int roomPrice;
+	    			
+
+	    			id = paramArray.getInt(0);
+	    			location = paramArray.getString(1);
+	    			numRooms = paramArray.getInt(2);
+	    			roomPrice = paramArray.getInt(3);
+	    			
+	    			returnResponse(addRooms(id, location, numRooms, roomPrice), out);
 	    		}
 	    		else if(method.equals("new_customer"))
 	    		{
@@ -545,47 +558,83 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	    		}
 	    		else if(method.equals("delete_flight"))
 	    		{
+	    			int id;
+	    			int flightNumber;
 	    			
+	    			id = paramArray.getInt(0);
+	    			flightNumber = paramArray.getInt(1);
+	    			
+	    			returnResponse(deleteFlight(id, flightNumber), out);
 	    		}
 	    		else if(method.equals("delete_car"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			String location = paramArray.getString(1);
 	    			
+	    			returnResponse(deleteCars(id, location), out);
 	    		}
 	    		else if(method.equals("delete_room"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			String location = paramArray.getString(1);
 	    			
+	    			returnResponse(deleteRooms(id, location), out);
 	    		}
 	    		else if(method.equals("delete_customer"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			int customerID = paramArray.getInt(1);
 	    			
+	    			returnResponse(deleteCustomer(id, customerID), out);
 	    		}
 	    		else if(method.equals("query_flight_location"))
 	    		{
-	    			
+	    			int id = paramArray.getInt(0);
+	    			int flightNumber = paramArray.getInt(1);
+	    		
+	    			returnResponse(queryFlight(id, flightNumber), out);
 	    		}
 	    		else if(method.equals("query_car_location"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			String location = paramArray.getString(1);
 	    			
+	    			returnResponse(queryCars(id, location), out);
 	    		}
 	    		else if(method.equals("query_room_location"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			String location = paramArray.getString(1);
 	    			
+	    			returnResponse(queryRooms(id, location), out);
 	    		}
 	    		else if(method.equals("query_customer"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			int customerID = paramArray.getInt(1);
 	    			
+	    			returnResponse(queryCustomerInfo(id, customerID), out);
 	    		}
 	    		else if(method.equals("query_flight_price"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			int flightNumber = paramArray.getInt(1);
 	    			
+	    			returnResponse(queryFlightPrice(id, flightNumber), out);
 	    		}
 	    		else if(method.equals("query_car_price"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			String location = paramArray.getString(1);
 	    			
+	    			returnResponse(queryCarsPrice(id, location), out);
 	    		}
 	    		else if(method.equals("query_room_price"))
 	    		{
+	    			int id = paramArray.getInt(0);
+	    			String location = paramArray.getString(1);
 	    			
+	    			returnResponse(queryRoomsPrice(id, location), out);
 	    		}
 	    		else if(method.equals("reserve_flight"))
 	    		{
@@ -604,9 +653,6 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 	    			
 	    		}
 	    		
-	    		
-				out.writeBytes("Received and processed json\n");
-				out.flush();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -615,5 +661,47 @@ public class ResourceManagerClientHandler extends Thread implements ResourceMana
 				e.printStackTrace();
 			}
 			
+	    }
+	    
+	    // overloaded methods to handle sending rm information back to client (middleware)
+	    private void returnResponse(boolean response, DataOutputStream out)
+	    {
+	    	JSONObject responseJson = new JSONObject();
+	    	
+	    	try {
+				responseJson.put("response_type", "boolean");
+				responseJson.put("response", response);
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    }
+	    
+	    private void returnResponse(int response, DataOutputStream out)
+	    {
+	    	JSONObject responseJson = new JSONObject();
+	    	
+	    	try {
+				responseJson.put("response_type", "integer");
+				responseJson.put("response", response);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    	
+	    }
+	    
+	    private void returnResponse(String response, DataOutputStream out)
+	    {
+	    	JSONObject responseJson = new JSONObject();
+	    	
+	    	try {
+				responseJson.put("response_type", "string");
+				responseJson.put("response", response);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	    }
 }
