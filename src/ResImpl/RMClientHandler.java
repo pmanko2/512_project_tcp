@@ -17,7 +17,7 @@ import org.json.JSONObject;
 
 import ResInterface.ResourceManager;
 
-public class RMClientHandler extends Thread implements ResourceManager
+public class RMClientHandler extends Thread 
 {
 	private Socket clientSocket;
 	protected ResourceManagerImpl mainRM;
@@ -157,23 +157,65 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    /**
 	     * Added 25/09/13 - returns a reservable item (so that Middleware can manage reservations without 
 	     * providing customer data to RMs or needing to manage inventory
+	     * @throws JSONException 
 	     */
-	    public ReservableItem getReservableItem(int id, String key)
+	    public String getReservableItem(int id, String key) throws JSONException
 	    {
-	    	return (ReservableItem)mainRM.readData(id, key);
+	    	ReservableItem item = (ReservableItem)mainRM.readData(id, key);
+	    	
+	    	JSONObject reservableReturn = new JSONObject();
+	    	reservableReturn.put("is_null", (item == null));
+	    	
+	    	if(item == null)
+	    	{
+	    		System.out.println(reservableReturn.toString());
+	    		return reservableReturn.toString();
+	    	}
+	    	else
+	    	{
+	    		System.out.println(reservableReturn.toString());
+	    		reservableReturn.put("count", item.getCount());
+	    		reservableReturn.put("price", item.getPrice());
+	    		
+	    		return reservableReturn.toString();
+	    	}
 	    }
 	    
 		/**
 		 * Method updates object's availability after it has been reserved in the Middleware 
+		 * @throws JSONException 
 		 */
-		public boolean itemReserved(int id, ReservableItem item) throws RemoteException {
+		public boolean itemReserved(int id, String item) throws RemoteException, JSONException {
 
-	        ReservableItem item_to_update = (ReservableItem)mainRM.readData(id, item.getKey());
+			JSONObject resItem = new JSONObject(item);
+			String key = resItem.getString("key");
+			
+	        ReservableItem item_to_update = (ReservableItem)mainRM.readData(id, key);
 		
 	        // decrease the number of available items in the storage
 	        item_to_update.setCount(item_to_update.getCount() - 1);
 	        item_to_update.setReserved(item_to_update.getReserved()+1);
 			return true;
+		}
+		
+		/**
+		 * Method used when a customer is deleted - this method frees up the resources 
+		 * of that customer
+		 * @param id
+		 * @param item
+		 * @return
+		 * @throws RemoteException
+		 * @throws JSONException 
+		 */
+		public boolean itemUnReserved(int id, int customerID, String key, String reserveditem) throws RemoteException, JSONException {
+			ReservableItem item = (ReservableItem)mainRM.readData(id, key);
+			
+			JSONObject reservedItemJson = new JSONObject(reserveditem);
+			
+			Trace.info("RM::deleteCustomer(" + id + ", " + customerID + ") has reserved " + reservedItemJson.getString("key") + "which is reserved" +  item.getReserved() +  " times and is still available " + item.getCount() + " times"  );
+	        item.setReserved(item.getReserved()-reservedItemJson.getInt("count"));
+	        item.setCount(item.getCount()+reservedItemJson.getInt("count"));
+	        return true;
 		}
 
 	    
@@ -462,7 +504,7 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    */
 
 	    
-	    // Adds car reservation to this customer. 
+	    /*// Adds car reservation to this customer. 
 	    public boolean reserveCar(int id, int customerID, String location)
 	        throws RemoteException
 	    {
@@ -481,7 +523,7 @@ public class RMClientHandler extends Thread implements ResourceManager
 	        throws RemoteException
 	    {
 	        return reserveItem(id, customerID, Flight.getKey(flightNum), String.valueOf(flightNum));
-	    }
+	    }*/
 	    
 	    // Reserve an itinerary 
 	    @SuppressWarnings("rawtypes")
@@ -500,6 +542,7 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    		String method = json.getString("method");
 	    		JSONArray paramArray = json.getJSONArray("parameters");
 	    		
+	    		Trace.info("Method: " + method + "Params: " + paramArray.toString());
 	    		
 	    		// long if/then sequence to determine which method the rm should call
 	    		
@@ -545,10 +588,6 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    			roomPrice = paramArray.getInt(3);
 	    			
 	    			backToClient = returnResponse(addRooms(id, location, numRooms, roomPrice), method);
-	    		}
-	    		else if(method.equals("new_customer"))
-	    		{
-	    			
 	    		}
 	    		else if(method.equals("delete_flight"))
 	    		{
@@ -630,17 +669,18 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    			
 	    			backToClient = returnResponse(queryRoomsPrice(id, location), method);
 	    		}
-	    		else if(method.equals("reserve_flight"))
+	    		else if(method.equals("reserve_item"))
 	    		{
-	    			
+	    			backToClient = getReservableItem(paramArray.getInt(0), paramArray.getString(1));
 	    		}
-	    		else if(method.equals("reserve_car"))
+	    		else if(method.equals("item_reserved"))
 	    		{
-	    			
+	    			backToClient = returnResponse(itemReserved(paramArray.getInt(0), paramArray.getString(1)),
+	    					"item_reserved");
 	    		}
-	    		else if(method.equals("reserve_room"))
+	    		else if(method.equals("item_unreserve"))
 	    		{
-	    			
+	    			backToClient = returnResponse(itemUnReserved(paramArray.getInt(0), paramArray.getInt(1), paramArray.getString(2), paramArray.getString(3)), "unreserve_item");
 	    		}
 	    		else
 	    		{
