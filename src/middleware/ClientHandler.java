@@ -173,12 +173,12 @@ public class ClientHandler extends Thread
 			else if(rmServer.equals(FLIGHTS_RM))
 			{
 				toRM = new DataOutputStream(flightsSocket.getOutputStream());
-				fromRM = new BufferedReader(new InputStreamReader(carsSocket.getInputStream()));
+				fromRM = new BufferedReader(new InputStreamReader(flightsSocket.getInputStream()));
 			}
 			else
 			{
 				toRM = new DataOutputStream(roomsSocket.getOutputStream());
-				fromRM = new BufferedReader(new InputStreamReader(carsSocket.getInputStream()));
+				fromRM = new BufferedReader(new InputStreamReader(roomsSocket.getInputStream()));
 			}
 			
 			toRM.writeBytes(json + "\n");
@@ -191,7 +191,7 @@ public class ClientHandler extends Thread
 			{
 				System.out.println(rmServer + " Response: " + response);
 				
-				return response;
+				break;
 				
 			}
 			

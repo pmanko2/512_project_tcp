@@ -50,12 +50,18 @@ public class RMClientHandler extends Thread implements ResourceManager
 			{
 				while((clientRequest = inputReader.readLine()) != null)
 				{
-					System.out.println("RMHandler receives request: " + clientRequest);
-				
 					
-					//JSONObject jsonRequest = new JSONObject(clientRequest);
+					JSONObject jsonRequest = new JSONObject(clientRequest);
+					System.out.print(jsonRequest.toString());
+					String backToClient = processJson(jsonRequest);
+					
+					System.out.println("Sending this back to middleware client: " + backToClient);
+					
+					out.writeBytes(backToClient + "\n");
+					out.flush();
+					
 					break;
-					//processJson(jsonRequest, out);
+					
 				}
 			}
 			
@@ -63,10 +69,10 @@ public class RMClientHandler extends Thread implements ResourceManager
 		} catch(IOException e)
 		{
 			System.out.println("Input/Output Exception");
-		} /*catch (JSONException e) 
+		} catch (JSONException e) 
 		{
 			System.out.println("json error: " + e.toString());
-		}*/
+		}
 	}
 	    
 	    
@@ -176,6 +182,8 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    public boolean addFlight(int id, int flightNum, int flightSeats, int flightPrice)
 	        throws RemoteException
 	    {
+	    	System.out.println("Im in add flight!!!!");
+	    	
 	        Trace.info("RM::addFlight(" + id + ", " + flightNum + ", $" + flightPrice + ", " + flightSeats + ") called" );
 	        Flight curObj = (Flight) mainRM.readData( id, Flight.getKey(flightNum) );
 	        if ( curObj == null ) {
@@ -483,13 +491,15 @@ public class RMClientHandler extends Thread implements ResourceManager
 	        return false;
 	    }
 	    
-	    private void processJson(JSONObject json, DataOutputStream out)
+	    private String processJson(JSONObject json)
 	    {
 	    	
+	    	String backToClient = null;
 	    	
 	    	try {
 	    		String method = json.getString("method");
 	    		JSONArray paramArray = json.getJSONArray("parameters");
+	    		
 	    		
 	    		// long if/then sequence to determine which method the rm should call
 	    		
@@ -504,8 +514,8 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    			flightNumber = paramArray.getInt(1);
 	    			flightSeats = paramArray.getInt(2);
 	    			flightPrice = paramArray.getInt(3);
-	    			
-	    			returnResponse(addFlight(id, flightNumber, flightSeats, flightPrice), out);
+	    				    			
+	    			backToClient = returnResponse(addFlight(id, flightNumber, flightSeats, flightPrice), method);
 	    		}
 	    		else if(method.equals("new_car"))
 	    		{
@@ -519,7 +529,7 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    			numCars = paramArray.getInt(2);
 	    			carPrice = paramArray.getInt(3);
 	    			
-	    			returnResponse(addCars(id, location, numCars, carPrice), out);
+	    			returnResponse(addCars(id, location, numCars, carPrice), method);
 	    		}
 	    		else if(method.equals("new_room"))
 	    		{
@@ -534,7 +544,7 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    			numRooms = paramArray.getInt(2);
 	    			roomPrice = paramArray.getInt(3);
 	    			
-	    			returnResponse(addRooms(id, location, numRooms, roomPrice), out);
+	    			backToClient = returnResponse(addRooms(id, location, numRooms, roomPrice), method);
 	    		}
 	    		else if(method.equals("new_customer"))
 	    		{
@@ -548,77 +558,77 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    			id = paramArray.getInt(0);
 	    			flightNumber = paramArray.getInt(1);
 	    			
-	    			returnResponse(deleteFlight(id, flightNumber), out);
+	    			backToClient = returnResponse(deleteFlight(id, flightNumber), method);
 	    		}
 	    		else if(method.equals("delete_car"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			String location = paramArray.getString(1);
 	    			
-	    			returnResponse(deleteCars(id, location), out);
+	    			backToClient = returnResponse(deleteCars(id, location), method);
 	    		}
 	    		else if(method.equals("delete_room"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			String location = paramArray.getString(1);
 	    			
-	    			returnResponse(deleteRooms(id, location), out);
+	    			backToClient = returnResponse(deleteRooms(id, location), method);
 	    		}
 	    		else if(method.equals("delete_customer"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			int customerID = paramArray.getInt(1);
 	    			
-	    			returnResponse(deleteCustomer(id, customerID), out);
+	    			backToClient = returnResponse(deleteCustomer(id, customerID), method);
 	    		}
 	    		else if(method.equals("query_flight_location"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			int flightNumber = paramArray.getInt(1);
 	    		
-	    			returnResponse(queryFlight(id, flightNumber), out);
+	    			backToClient = returnResponse(queryFlight(id, flightNumber), method);
 	    		}
 	    		else if(method.equals("query_car_location"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			String location = paramArray.getString(1);
 	    			
-	    			returnResponse(queryCars(id, location), out);
+	    			backToClient = returnResponse(queryCars(id, location), method);
 	    		}
 	    		else if(method.equals("query_room_location"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			String location = paramArray.getString(1);
 	    			
-	    			returnResponse(queryRooms(id, location), out);
+	    			backToClient = returnResponse(queryRooms(id, location), method);
 	    		}
 	    		else if(method.equals("query_customer"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			int customerID = paramArray.getInt(1);
 	    			
-	    			returnResponse(queryCustomerInfo(id, customerID), out);
+	    			backToClient = returnResponse(queryCustomerInfo(id, customerID), method);
 	    		}
 	    		else if(method.equals("query_flight_price"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			int flightNumber = paramArray.getInt(1);
 	    			
-	    			returnResponse(queryFlightPrice(id, flightNumber), out);
+	    			backToClient = returnResponse(queryFlightPrice(id, flightNumber), method);
 	    		}
 	    		else if(method.equals("query_car_price"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			String location = paramArray.getString(1);
 	    			
-	    			returnResponse(queryCarsPrice(id, location), out);
+	    			backToClient = returnResponse(queryCarsPrice(id, location), method);
 	    		}
 	    		else if(method.equals("query_room_price"))
 	    		{
 	    			int id = paramArray.getInt(0);
 	    			String location = paramArray.getString(1);
 	    			
-	    			returnResponse(queryRoomsPrice(id, location), out);
+	    			backToClient = returnResponse(queryRoomsPrice(id, location), method);
 	    		}
 	    		else if(method.equals("reserve_flight"))
 	    		{
@@ -637,6 +647,7 @@ public class RMClientHandler extends Thread implements ResourceManager
 	    			
 	    		}
 	    		
+	    		
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -644,48 +655,71 @@ public class RMClientHandler extends Thread implements ResourceManager
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+	    	
+	    	return backToClient;
 			
 	    }
 	    
 	    // overloaded methods to handle sending rm information back to client (middleware)
-	    private void returnResponse(boolean response, DataOutputStream out)
+	    private String returnResponse(boolean response, String method)
 	    {
+	    	String responseString = "";
 	    	JSONObject responseJson = new JSONObject();
 	    	
 	    	try {
+	    		responseJson.put("method", method);
 				responseJson.put("response_type", "boolean");
 				responseJson.put("response", response);
+				System.out.println("RM Response is: " + responseJson.toString());
+				
+				responseString = responseJson.toString();
 				
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			} 
+	    	
+	    	return responseString;
 	    }
 	    
-	    private void returnResponse(int response, DataOutputStream out)
+	    private String returnResponse(int response, String method)
 	    {
 	    	JSONObject responseJson = new JSONObject();
+	    	String responseString = "";
 	    	
 	    	try {
+	    		responseJson.put("method", method);
 				responseJson.put("response_type", "integer");
 				responseJson.put("response", response);
+				System.out.println("RM Response is: " + responseJson.toString());
+
+				responseString = responseJson.toString();
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+	    	
+	    	return responseString;
 	    	
 	    }
 	    
-	    private void returnResponse(String response, DataOutputStream out)
+	    private String returnResponse(String response, String method)
 	    {
 	    	JSONObject responseJson = new JSONObject();
+	    	String responseString = "";
 	    	
 	    	try {
+	    		responseJson.put("method", method);
 				responseJson.put("response_type", "string");
 				responseJson.put("response", response);
+				System.out.println("RM Response is: " + responseJson.toString());
+				
+				responseString = responseJson.toString();
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+	    	
+	    	return responseString;
 	    }
 }
