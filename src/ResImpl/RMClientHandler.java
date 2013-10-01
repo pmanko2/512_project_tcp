@@ -17,12 +17,12 @@ import org.json.JSONObject;
 
 import ResInterface.ResourceManager;
 
-public class ResourceManagerClientHandler extends Thread implements ResourceManager
+public class RMClientHandler extends Thread implements ResourceManager
 {
 	private Socket clientSocket;
 	protected ResourceManagerImpl mainRM;
 	
-	public ResourceManagerClientHandler(Socket socket, ResourceManagerImpl mainRM)
+	public RMClientHandler(Socket socket, ResourceManagerImpl mainRM)
 	{
 		super("RMClientHandler");
 		this.clientSocket = socket;

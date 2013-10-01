@@ -17,6 +17,9 @@ import org.json.JSONObject;
 public class ClientHandler extends Thread
 {
 	private Socket clientSocket;
+	private Socket carsSocket;
+	private Socket flightsSocket;
+	private Socket roomsSocket;
 	private static String CARS_RM;
 	private static String FLIGHTS_RM;
 	private static String ROOMS_RM;
@@ -43,6 +46,8 @@ public class ClientHandler extends Thread
 		BufferedReader inputReader = null;
 		DataOutputStream out = null; 
 		
+		openRMSockets();
+		
 		try
 		{
 			// create input reader and output streams
@@ -63,17 +68,14 @@ public class ClientHandler extends Thread
 					JSONObject jsonRequest = new JSONObject(clientRequest);
 					String rmResponse = processJson(jsonRequest);
 					
-					// write now we return this - need to return RM response
+					// right now we return this - need to return RM response
 					// wait for RM response before returning
-					
-					
-					
 					out.writeBytes(rmResponse + "\n");
 					out.flush();
 					break;
 				}
 				
-				System.out.println("Stopped reading client input -- continuing to listen in while loop");
+				//System.out.println("Stopped reading client input -- continuing to listen in while loop");
 			}
 			
 
@@ -108,7 +110,7 @@ public class ClientHandler extends Thread
 			}
 			
 			String rmServer = chooseRMServer(method);
-			rmResponse = openRMSocketConnection(rmServer, request.toString());
+			rmResponse = sendJSONToRM(rmServer, request.toString());
 						
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
@@ -137,30 +139,57 @@ public class ClientHandler extends Thread
 		}
 	}
 	
+	private void openRMSockets()
+	{
+		try {
+			carsSocket = new Socket(CARS_RM, RM_PORT);
+			flightsSocket = new Socket(FLIGHTS_RM, RM_PORT);
+			roomsSocket = new Socket(ROOMS_RM, RM_PORT);
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	// open connection to RM server and passes json string through -- returns JSON response string
 	@SuppressWarnings("resource")
-	private String openRMSocketConnection(String rmServer, String json)
+	private String sendJSONToRM(String rmServer, String json)
 	{
-		Socket clientSocket = null;
 		DataOutputStream toRM = null;
 		BufferedReader fromRM = null;
+		String response = "Response Error";
 		
 		try
 		{
-			clientSocket = new Socket(rmServer, RM_PORT);
-			toRM = new DataOutputStream(clientSocket.getOutputStream());
-			fromRM = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+			if(rmServer.equals(CARS_RM))
+			{
+				toRM = new DataOutputStream(carsSocket.getOutputStream());
+				fromRM = new BufferedReader(new InputStreamReader(carsSocket.getInputStream()));
+			}
+			else if(rmServer.equals(FLIGHTS_RM))
+			{
+				toRM = new DataOutputStream(flightsSocket.getOutputStream());
+				fromRM = new BufferedReader(new InputStreamReader(carsSocket.getInputStream()));
+			}
+			else
+			{
+				toRM = new DataOutputStream(roomsSocket.getOutputStream());
+				fromRM = new BufferedReader(new InputStreamReader(carsSocket.getInputStream()));
+			}
 			
 			toRM.writeBytes(json + "\n");
 			toRM.flush();
 			
-			String response;
 			
 			// wait for response from server and eventually we will have to pass this response back
 			// to the client
 			while((response = fromRM.readLine()) != null)
 			{
-				System.out.println("Server Response: " + response);
+				System.out.println(rmServer + " Response: " + response);
 				
 				return response;
 				
@@ -174,6 +203,6 @@ public class ClientHandler extends Thread
 			System.exit(1);
 		}
 		
-		return null;
+		return response;
 	}
 }

@@ -10,5 +10,5 @@ javac -Xlint ~/cs512_tcp/servercode/ResImpl/ResourceManagerImpl.java
 echo 'Generating jar file(s)...'
 jar cvf ~/cs512_tcp/servercode/ResInterface.jar ~/cs512_tcp/servercode/ResInterface/*.class
 
-echo 'Running RM server...' 
+echo 'Running Flight RM server...' 
 java ResImpl.ResourceManagerImpl.java lab2-11.cs.mcgill.ca flight 
