@@ -729,7 +729,7 @@ public class Client
 	        	
 				while((serverResponse = clientInput.readLine()) != null)
 				{
-					System.out.println("Server Response: " + serverResponse);
+					printServerResponse(serverResponse);
 					break;
 				}
 				
@@ -1084,6 +1084,99 @@ public class Client
 			//socket.close();
 			
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
+    private static void printServerResponse(String responseJson)
+    {
+    	try {
+			JSONObject json = new JSONObject(responseJson);
+			String method = json.getString("method");
+			
+			if(method.equals("new_flight"))
+    		{
+    			boolean response = json.getBoolean("response");
+    			if(response)
+    				System.out.println("Flight successfully added");
+    			else
+    				System.out.println("Could not");
+    		}
+    		else if(method.equals("new_car"))
+    		{
+    			
+    		}
+    		else if(method.equals("new_room"))
+    		{
+    			
+    		}
+    		else if(method.equals("new_customer"))
+    		{
+    			
+    		}
+    		else if(method.equals("delete_flight"))
+    		{
+    			
+    		}
+    		else if(method.equals("delete_car"))
+    		{
+    			
+    		}
+    		else if(method.equals("delete_room"))
+    		{
+    			
+    		}
+    		else if(method.equals("delete_customer"))
+    		{
+    			
+    		}
+    		else if(method.equals("query_flight_location"))
+    		{
+    			
+    		}
+    		else if(method.equals("query_car_location"))
+    		{
+    			
+    		}
+    		else if(method.equals("query_room_location"))
+    		{
+    			
+    		}
+    		else if(method.equals("query_customer"))
+    		{
+    		}
+    		else if(method.equals("query_flight_price"))
+    		{
+    			
+    		}
+    		else if(method.equals("query_car_price"))
+    		{
+
+    		}
+    		else if(method.equals("query_room_price"))
+    		{
+
+    		}
+    		else if(method.equals("reserve_flight"))
+    		{
+    			
+    		}
+    		else if(method.equals("reserve_car"))
+    		{
+    			
+    		}
+    		else if(method.equals("reserve_room"))
+    		{
+    			
+    		}
+    		else
+    		{
+    			
+    		}
+			
+			
+		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
