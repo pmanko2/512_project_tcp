@@ -1098,18 +1098,29 @@ public class Client
 			if(method.equals("new_flight"))
     		{
     			boolean response = json.getBoolean("response");
+    			
     			if(response)
     				System.out.println("Flight successfully added");
     			else
-    				System.out.println("Could not");
+    				System.out.println("Flight not added");
     		}
     		else if(method.equals("new_car"))
     		{
+    			boolean response = json.getBoolean("response");
     			
+    			if(response)
+    				System.out.println("Car successfully added");
+    			else
+    				System.out.println("Car not added");
     		}
     		else if(method.equals("new_room"))
     		{
+    			boolean response = json.getBoolean("response");
     			
+    			if(response)
+    				System.out.println("Room successfully added");
+    			else
+    				System.out.println("Room not added");
     		}
     		else if(method.equals("new_customer"))
     		{
@@ -1117,15 +1128,30 @@ public class Client
     		}
     		else if(method.equals("delete_flight"))
     		{
+    			boolean response = json.getBoolean("response");
     			
+    			if(response)
+    				System.out.println("Flight successfully deleted");
+    			else
+    				System.out.println("Flight could not be deleted");
     		}
     		else if(method.equals("delete_car"))
     		{
+    			boolean response = json.getBoolean("response");
     			
+    			if(response)
+    				System.out.println("Car successfully deleted");
+    			else
+    				System.out.println("Car could not be deleted");
     		}
     		else if(method.equals("delete_room"))
     		{
+    			boolean response = json.getBoolean("response");
     			
+    			if(response)
+    				System.out.println("Room successfully deleted");
+    			else
+    				System.out.println("Room could not be deleted");
     		}
     		else if(method.equals("delete_customer"))
     		{
@@ -1133,30 +1159,42 @@ public class Client
     		}
     		else if(method.equals("query_flight_location"))
     		{
+    			int response = json.getInt("response");
     			
+    			System.out.println("Number of seats available: " + response);
     		}
     		else if(method.equals("query_car_location"))
     		{
+    			int response = json.getInt("response");
     			
+    			System.out.println("Number of cars available: " + response);
     		}
     		else if(method.equals("query_room_location"))
     		{
+    			int response = json.getInt("response");
     			
+    			System.out.println("Number of rooms available: " + response);
     		}
     		else if(method.equals("query_customer"))
     		{
     		}
     		else if(method.equals("query_flight_price"))
     		{
+    			int response = json.getInt("response");
     			
+    			System.out.println("Price of a seat: " + response);
     		}
     		else if(method.equals("query_car_price"))
     		{
-
+    			int response = json.getInt("response");
+    			
+    			System.out.println("Price of a car: " + response);
     		}
     		else if(method.equals("query_room_price"))
     		{
-
+    			int response = json.getInt("response");
+    			
+    			System.out.println("Price of a room: " + response);
     		}
     		else if(method.equals("reserve_flight"))
     		{
