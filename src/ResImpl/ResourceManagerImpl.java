@@ -11,19 +11,9 @@
  */
 package ResImpl;
 
-import ResInterface.*;
-
-import java.util.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.rmi.registry.Registry;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
-import java.rmi.RMISecurityManager;
-
-import middleware.ClientHandler;
 
 public class ResourceManagerImpl
 {
@@ -36,23 +26,20 @@ public class ResourceManagerImpl
     {
     	ServerSocket rmSocket = null;
     	boolean listening = true;
-    	int port;
+    	String rmName = "unspecified";
+    	int port = 1107;
     	
     	ResourceManagerImpl currentClass = new ResourceManagerImpl();
     	
     	if(args.length > 0)
 		{
-			port = Integer.parseInt(args[0]);
-		}
-		else
-		{
-			port = 1107;
+			rmName = args[0];
 		}
 		
 		try
 		{
 			rmSocket = new ServerSocket(port);
-			System.out.println("Server is listening on port " + rmSocket.getLocalPort());
+			System.out.println(rmName + " server" + "at address" + rmSocket.getInetAddress() + " is listening on port " + rmSocket.getLocalPort());
 		}
 		catch(IOException e)
 		{
@@ -63,11 +50,11 @@ public class ResourceManagerImpl
 		while(listening)
 		{
 			try {
-				System.out.println("Trying to connect to new rm socket");
+				System.out.println("Trying to connect to new middleware socket");
 				Socket socket = rmSocket.accept();
 				
 				System.out.println("Creating new rm socket thread: " + socket.getInetAddress() + " Port: " + socket.getPort());
-				//new ResourceManagerClientHandler(socket, currentClass).start();
+				new RMClientHandler(socket, currentClass).start();
 				
 			} catch (IOException e) {
 				System.out.println("Input/Output error" + e.toString());

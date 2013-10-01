@@ -50,10 +50,12 @@ public class RMClientHandler extends Thread implements ResourceManager
 			{
 				while((clientRequest = inputReader.readLine()) != null)
 				{
-					System.out.println(clientRequest);
+					System.out.println("RMHandler receives request: " + clientRequest);
+				
 					
-					JSONObject jsonRequest = new JSONObject(clientRequest);
-					processJson(jsonRequest, out);
+					//JSONObject jsonRequest = new JSONObject(clientRequest);
+					break;
+					//processJson(jsonRequest, out);
 				}
 			}
 			
@@ -61,10 +63,10 @@ public class RMClientHandler extends Thread implements ResourceManager
 		} catch(IOException e)
 		{
 			System.out.println("Input/Output Exception");
-		} catch (JSONException e) 
+		} /*catch (JSONException e) 
 		{
 			System.out.println("json error: " + e.toString());
-		}
+		}*/
 	}
 	    
 	    
