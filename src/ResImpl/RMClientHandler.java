@@ -185,10 +185,7 @@ public class RMClientHandler extends Thread
 		 * Method updates object's availability after it has been reserved in the Middleware 
 		 * @throws JSONException 
 		 */
-		public boolean itemReserved(int id, String item) throws RemoteException, JSONException {
-
-			JSONObject resItem = new JSONObject(item);
-			String key = resItem.getString("key");
+		public boolean itemReserved(int id, String key) throws RemoteException, JSONException {
 			
 	        ReservableItem item_to_update = (ReservableItem)mainRM.readData(id, key);
 		
@@ -207,14 +204,12 @@ public class RMClientHandler extends Thread
 		 * @throws RemoteException
 		 * @throws JSONException 
 		 */
-		public boolean itemUnReserved(int id, int customerID, String key, String reserveditem) throws RemoteException, JSONException {
+		public boolean itemUnReserved(int id, int customerID, String key, String reserveditemKey, int reserveditemCount) throws RemoteException{
 			ReservableItem item = (ReservableItem)mainRM.readData(id, key);
 			
-			JSONObject reservedItemJson = new JSONObject(reserveditem);
-			
-			Trace.info("RM::deleteCustomer(" + id + ", " + customerID + ") has reserved " + reservedItemJson.getString("key") + "which is reserved" +  item.getReserved() +  " times and is still available " + item.getCount() + " times"  );
-	        item.setReserved(item.getReserved()-reservedItemJson.getInt("count"));
-	        item.setCount(item.getCount()+reservedItemJson.getInt("count"));
+			Trace.info("RM::deleteCustomer(" + id + ", " + customerID + ") has reserved " + reserveditemKey + "which is reserved" +  item.getReserved() +  " times and is still available " + item.getCount() + " times"  );
+	        item.setReserved(item.getReserved()-reserveditemCount);
+	        item.setCount(item.getCount()+reserveditemCount);
 	        return true;
 		}
 
@@ -572,7 +567,7 @@ public class RMClientHandler extends Thread
 	    			numCars = paramArray.getInt(2);
 	    			carPrice = paramArray.getInt(3);
 	    			
-	    			returnResponse(addCars(id, location, numCars, carPrice), method);
+	    			backToClient = returnResponse(addCars(id, location, numCars, carPrice), method);
 	    		}
 	    		else if(method.equals("new_room"))
 	    		{
@@ -680,7 +675,9 @@ public class RMClientHandler extends Thread
 	    		}
 	    		else if(method.equals("item_unreserve"))
 	    		{
-	    			backToClient = returnResponse(itemUnReserved(paramArray.getInt(0), paramArray.getInt(1), paramArray.getString(2), paramArray.getString(3)), "unreserve_item");
+	    			backToClient = returnResponse(itemUnReserved(paramArray.getInt(0), paramArray.getInt(1), 
+	    					paramArray.getString(2), paramArray.getString(3), paramArray.getInt(4)), 
+	    					"unreserve_item");
 	    		}
 	    		else
 	    		{

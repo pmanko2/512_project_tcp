@@ -12,6 +12,8 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Vector;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -220,7 +222,7 @@ public class ClientHandler extends Thread
 	{
 		return method.equals("new_customer") || method.equals("delete_customer") || method.equals("query_customer")
 				|| method.equals("reserve_car") || method.equals("reserve_flight") 
-				|| method.equals("reserve_room");
+				|| method.equals("reserve_room") || method.equals("itinerary");
 	}
 	
 	private String processInMiddleWare(String method, JSONArray paramArray)
@@ -254,11 +256,25 @@ public class ClientHandler extends Thread
 			}
 			else if(method.equals("delete_customer"))
 			{
-				
+				boolean deleted = deleteCustomer(paramArray.getInt(0), paramArray.getInt(1));
+				return returnResponse(deleted, "delete_customer");
 			}
 			else
 			{
+				String flightsString = paramArray.getString(2);
+				String delim = "-";
+				String[] result = flightsString.split(delim);
+				ArrayList<String> flights = new ArrayList<String>();
 				
+				for(int i = 0; i < result.length; i++)
+				{
+					flights.add(result[i]);
+				}
+				
+				boolean success = itinerary(paramArray.getInt(0), paramArray.getInt(1),
+						flights, paramArray.getString(3), paramArray.getBoolean(4), paramArray.getBoolean(5));
+				
+				return returnResponse(success, "itinerary");
 			}
 
 				
@@ -509,7 +525,6 @@ public class ClientHandler extends Thread
     	    	        
     	    	        //int id, int customerID, String key, ReservedItem reserveditem
     	    	        
-    	    	        JSONObject json = new JSONObject();
 			        	JSONObject request = new JSONObject();
 			        	request.put("method", "item_unreserve");
 			        	
@@ -517,12 +532,10 @@ public class ClientHandler extends Thread
 			        	params.put(0, id);
 			        	params.put(1, customerID);
 			        	params.put(2, key);
+			        	params.put(3, reserveditem.getKey());
+			        	params.put(4, reserveditem.getCount());
 			        	
-			        	JSONObject reserved = new JSONObject();
-			        	reserved.put("key", reserveditem.getKey());
-			        	reserved.put("count", reserveditem.getCount());
-			        	
-			        	params.put(3, reserved.toString());
+			        	request.put("parameters", params);
     	    	        
     	    	        String item = null;
     	    	        // check if the item is available
@@ -530,17 +543,17 @@ public class ClientHandler extends Thread
     	    	        if (tokens[0].equals("flight"))
     	    	        {
     			        	
-    			        	item = sendJSONToRM(FLIGHTS_RM, json.toString());
+    			        	item = sendJSONToRM(FLIGHTS_RM, request.toString());
     	    	        }
     	    	        //else if the item is a car
     	    	        else if (tokens[0].equals("car"))
     	    	        {
-    	    	        	item = sendJSONToRM(CARS_RM, json.toString());
+    	    	        	item = sendJSONToRM(CARS_RM, request.toString());
     	    	        }
     	    	        //otherwise it's a room
     	    	        else
     	    	        {
-    	    	        	item = sendJSONToRM(ROOMS_RM, json.toString());
+    	    	        	item = sendJSONToRM(ROOMS_RM, request.toString());
     	    	        }              
     	            }
     	            
@@ -614,4 +627,31 @@ public class ClientHandler extends Thread
 	    	
 	    	return responseString;
 	    }
+	    
+		@SuppressWarnings("rawtypes")
+		public boolean itinerary(int id, int customer, ArrayList<String> flightNumbers,
+				String location, boolean car, boolean room) throws JSONException {
+
+			boolean confirmation = true;
+			
+			for(String flightNumber : flightNumbers)
+			{
+				int flightNumberInt = Integer.parseInt(flightNumber);
+				confirmation = reserveItem(id, customer, Flight.getKey(flightNumberInt), String.valueOf(flightNumberInt));
+			}
+			
+			//if there was a car to be reserved as well
+			if (car)
+			{
+				confirmation = reserveItem(id, customer, Car.getKey(location), location);
+			}
+			
+			//if there was a room to be reserved as well
+			if (room)
+			{
+				confirmation = reserveItem(id, customer, Hotel.getKey(location), location);
+			}
+			
+			return confirmation;
+		}
 }

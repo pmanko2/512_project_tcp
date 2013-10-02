@@ -28,8 +28,8 @@ public class Client
 	static int flightNum;
 	static int flightPrice;
 	static int flightSeats;
-	boolean Room;
-	boolean Car;
+	static boolean Room;
+	static boolean Car;
 	static int price;
 	static int numRooms;
 	static int numCars;
@@ -640,13 +640,13 @@ public class Client
 			                System.out.println("Room could not be reserved.");*/
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
 		            
-		      /*  case 20:  //reserve an Itinerary
+		        case 20:  //reserve an Itinerary
 		            if(arguments.size()<7){
 		            obj.wrongNumber();
 		            break;
@@ -659,27 +659,47 @@ public class Client
 		            System.out.println("Car to book?:"+arguments.elementAt(arguments.size()-2));
 		            System.out.println("Room to book?:"+arguments.elementAt(arguments.size()-1));
 		            try{
-		            Id = obj.getInt(arguments.elementAt(1));
-		            int customer = obj.getInt(arguments.elementAt(2));
-		            Vector flightNumbers = new Vector();
-		            for(int i=0;i<arguments.size()-6;i++)
-		                flightNumbers.addElement(arguments.elementAt(3+i));
-		            location = obj.getString(arguments.elementAt(arguments.size()-3));
-		            Car = obj.getBoolean(arguments.elementAt(arguments.size()-2));
-		            Room = obj.getBoolean(arguments.elementAt(arguments.size()-1));
-		            
-		            if(rm.itinerary(Id,customer,flightNumbers,location,Car,Room))
-		                System.out.println("Itinerary Reserved");
-		            else
-		                System.out.println("Itinerary could not be reserved.");
+			            Id = obj.getInt(arguments.elementAt(1));
+			            int customer = obj.getInt(arguments.elementAt(2));
+			            Vector<String> flightNumbers = new Vector<String>();
+			            for(int i=0;i<arguments.size()-6;i++)
+			                flightNumbers.addElement(obj.getString(arguments.elementAt(3+i)));
+			            location = obj.getString(arguments.elementAt(arguments.size()-3));
+			            Car = obj.getBoolean(arguments.elementAt(arguments.size()-2));
+			            Room = obj.getBoolean(arguments.elementAt(arguments.size()-1));
+			            
+			            String flights = "";
+			            for (String flight : flightNumbers)
+			            {
+			            	if (flights.length() == 0)
+			            	{
+			            		flights = flight;
+			            	}
+			            	else 
+			            	{
+				            	flights = flights + "-" + flight;
+			            	}
+			            }
+			            ArrayList<String> params = new ArrayList<String>();
+			        
+			            params.add(String.valueOf(Id));
+			            params.add(String.valueOf(customer));
+			            params.add(flights);
+			            params.add(String.valueOf(location));
+			            params.add(String.valueOf(Car));
+			            params.add(String.valueOf(Room));
+			            
+			            JSONObject newRequest = constructJson("itinerary", params);
+			            sendJson(newRequest, clientOutput, clientSocket);
+			            
 		            }
 		            catch(Exception e){
-		            System.out.println("EXCEPTION:");
-		            System.out.println(e.getMessage());
-		            e.printStackTrace();
+			            System.out.println("EXCEPTION:");
+			            System.out.println(e.getMessage());
+			            e.printStackTrace();
 		            }
 		            break;
-		          */              
+		                      
 		        case 21:  //quit the client
 		            if(arguments.size()!=1){
 		            obj.wrongNumber();
@@ -1155,7 +1175,11 @@ public class Client
     		}
     		else if(method.equals("delete_customer"))
     		{
-    			
+    			boolean deleted = json.getBoolean("response");
+    			if(deleted)
+    				System.out.println("Customer successfully deleted");
+    			else
+    				System.out.println("Customer could not be deleted");
     		}
     		else if(method.equals("query_flight_location"))
     		{
@@ -1208,9 +1232,14 @@ public class Client
     		{
     			
     		}
-    		else
+    		else if (method.equals("itinerary"))
     		{
-    			
+    			boolean response = json.getBoolean("response");
+
+    			if(response)
+    				System.out.println("Itinerary successfully reserved.");
+    			else
+    				System.out.println("Itinerary could not be reserved.");
     		}
 			
 			
